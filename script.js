@@ -1,45 +1,51 @@
+// Fix the addModule function and event listener
 document.addEventListener('DOMContentLoaded', function() {
-    const subjectsContainer = document.getElementById('subjects-container');
-    const addSubjectBtn = document.getElementById('add-subject');
-    const calculateBtn = document.getElementById('calculate');
-    const resultsDiv = document.getElementById('results');
-    
-    // Add first module by default
-    addModule();
-    
-    // Event listeners
-    addSubjectBtn.addEventListener('click', addModule);
-    calculateBtn.addEventListener('click', calculateGPA);
-    
-    function addModule() {
+    // ... (keep all your existing code)
+
+    // Fix the addSubjectBtn event listener
+    addSubjectBtn.addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent default behavior
+        addModule(); // Call without parameters
+    });
+
+    // Update the addModule function
+    function addModule(name = '', credits = '', grade = '') {
+        emptyState.classList.add('hidden');
+
         const moduleRow = document.createElement('div');
-        moduleRow.className = 'grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-center';
+        moduleRow.className = 'grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center bg-sliitlight p-3 rounded-md';
         
         moduleRow.innerHTML = `
             <div class="md:col-span-5">
-                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" placeholder="Module Name" required>
+                <input type="text" value="${name}" class="module-name w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Module Name" required>
+            </div>
+            <div class="md:col-span-2">
+                <input type="number" value="${credits}" class="module-credits w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Credits" min="1" max="10" required>
             </div>
             <div class="md:col-span-3">
-                <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" placeholder="Credits" min="1" max="10" required>
-            </div>
-            <div class="md:col-span-3">
-                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" required>
+                <select class="module-grade w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" required>
                     <option value="">Select Grade</option>
-                    <option value="4.0">A+</option>
-                    <option value="4.0">A</option>
-                    <option value="3.7">A-</option>
-                    <option value="3.3">B+</option>
-                    <option value="3.0">B</option>
-                    <option value="2.7">B-</option>
-                    <option value="2.3">C+</option>
-                    <option value="2.0">C</option>
-                    <option value="1.7">C-</option>
-                    <option value="1.3">D+</option>
-                    <option value="1.0">D</option>
-                    <option value="0.0">E</option>
+                    <option value="4.0" ${grade === '4.0' ? 'selected' : ''}>A+</option>
+                    <option value="4.0" ${grade === '4.0' ? 'selected' : ''}>A</option>
+                    <option value="3.7" ${grade === '3.7' ? 'selected' : ''}>A-</option>
+                    <option value="3.3" ${grade === '3.3' ? 'selected' : ''}>B+</option>
+                    <option value="3.0" ${grade === '3.0' ? 'selected' : ''}>B</option>
+                    <option value="2.7" ${grade === '2.7' ? 'selected' : ''}>B-</option>
+                    <option value="2.3" ${grade === '2.3' ? 'selected' : ''}>C+</option>
+                    <option value="2.0" ${grade === '2.0' ? 'selected' : ''}>C</option>
+                    <option value="1.7" ${grade === '1.7' ? 'selected' : ''}>C-</option>
+                    <option value="1.3" ${grade === '1.3' ? 'selected' : ''}>D+</option>
+                    <option value="1.0" ${grade === '1.0' ? 'selected' : ''}>D</option>
+                    <option value="0.0" ${grade === '0.0' ? 'selected' : ''}>E</option>
                 </select>
             </div>
-            <div class="md:col-span-1 flex justify-center">
+            <div class="md:col-span-2 flex justify-end space-x-2">
+                <button class="move-up-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move up">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                <button class="move-down-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move down">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
                 <button class="remove-btn text-red-600 hover:text-red-800 transition-colors" title="Remove module">
                     <i class="fas fa-trash-alt"></i>
                 </button>
@@ -48,63 +54,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         subjectsContainer.appendChild(moduleRow);
         
-        // Add event listener to remove button
+        // Add event listeners to new module
         const removeBtn = moduleRow.querySelector('.remove-btn');
+        const moveUpBtn = moduleRow.querySelector('.move-up-btn');
+        const moveDownBtn = moduleRow.querySelector('.move-down-btn');
         
         removeBtn.addEventListener('click', function() {
             subjectsContainer.removeChild(moduleRow);
-            if (subjectsContainer.children.length === 0) {
-                resultsDiv.classList.add('hidden');
-            }
+            updateEmptyState();
         });
-    }
-    
-    function calculateGPA() {
-        const moduleRows = subjectsContainer.querySelectorAll('.grid');
-        let totalCredits = 0;
-        let totalGradePoints = 0;
         
-        // Validate all inputs first
-        let allValid = true;
-        
-        moduleRows.forEach(row => {
-            const nameInput = row.querySelector('input[type="text"]');
-            const creditsInput = row.querySelector('input[type="number"]');
-            const gradeSelect = row.querySelector('select');
-            
-            if (!nameInput.value || !creditsInput.value || !gradeSelect.value) {
-                allValid = false;
-                if (!nameInput.value) nameInput.classList.add('border-red-500');
-                if (!creditsInput.value) creditsInput.classList.add('border-red-500');
-                if (!gradeSelect.value) gradeSelect.classList.add('border-red-500');
-            } else {
-                nameInput.classList.remove('border-red-500');
-                creditsInput.classList.remove('border-red-500');
-                gradeSelect.classList.remove('border-red-500');
+        moveUpBtn.addEventListener('click', function() {
+            if (moduleRow.previousElementSibling && !moduleRow.previousElementSibling.id) {
+                subjectsContainer.insertBefore(moduleRow, moduleRow.previousElementSibling);
             }
         });
         
-        if (!allValid) {
-            alert('Please fill in all fields for all modules.');
-            return;
-        }
-        
-        // Calculate GPA
-        moduleRows.forEach(row => {
-            const credits = parseFloat(row.querySelector('input[type="number"]').value);
-            const gradePoints = parseFloat(row.querySelector('select').value);
-            
-            totalCredits += credits;
-            totalGradePoints += credits * gradePoints;
+        moveDownBtn.addEventListener('click', function() {
+            if (moduleRow.nextElementSibling) {
+                subjectsContainer.insertBefore(moduleRow.nextElementSibling, moduleRow);
+            }
         });
-        
-        const gpa = totalGradePoints / totalCredits;
-        
-        // Display results
-        document.getElementById('total-credits').textContent = totalCredits;
-        document.getElementById('total-grade-points').textContent = totalGradePoints.toFixed(2);
-        document.getElementById('gpa').textContent = gpa.toFixed(2);
-        
-        resultsDiv.classList.remove('hidden');
     }
+
+    // ... (rest of your existing code)
 });

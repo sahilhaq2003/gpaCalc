@@ -14,69 +14,577 @@
                         sliitblue: '#003366',
                         sliitorange: '#FF6B00',
                         sliitlight: '#F8F9FA',
+                        success: '#10B981',
+                        warning: '#F59E0B'
                     }
                 }
             }
         }
     </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50">
     <header class="bg-sliitblue text-white shadow-md">
-        <div class="container mx-auto px-4 py-6 flex items-center justify-center">
-            <img src="assets/sliit-logo.png" alt="SLIIT Logo" class="h-12 mr-4">
-            <h1 class="text-2xl font-bold">SLIIT GPA Calculator</h1>
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-graduation-cap text-2xl mr-3"></i>
+                <h1 class="text-xl font-bold">SLIIT GPA Calculator</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="index.html" class="hover:underline">Calculator</a></li>
+                    <li><a href="grading-scale.html" class="hover:underline">Grading Scale</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
-    <main class="flex-grow container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800">GPA Calculator</h2>
-                <p class="text-gray-600 mt-2">Calculate your GPA based on SLIIT's grading system</p>
-                <a href="grading-scale.html" class="inline-flex items-center text-sliitblue hover:underline mt-2">
-                    View Grading Scale <i class="fas fa-external-link-alt ml-1 text-sm"></i>
-                </a>
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Notification Toast -->
+            <div id="notification" class="hidden fixed top-4 right-4 z-50">
+                <div class="bg-success text-white px-4 py-3 rounded-md shadow-lg flex items-center">
+                    <span id="notification-message"></span>
+                    <button onclick="hideNotification()" class="ml-4">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                <button id="add-subject" class="bg-sliitblue hover:bg-blue-800 text-white px-4 py-2 rounded-md flex items-center transition-colors">
-                    <i class="fas fa-plus mr-2"></i> Add Module
-                </button>
-                <button id="calculate" class="bg-sliitorange hover:bg-orange-700 text-white px-6 py-2 rounded-md flex items-center transition-colors">
-                    <i class="fas fa-calculator mr-2"></i> Calculate GPA
-                </button>
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="p-4 bg-sliitblue text-white flex justify-between items-center">
+                    <h2 class="text-lg font-semibold">Module Management</h2>
+                    <div class="flex space-x-2">
+                        <button id="save-modules" class="bg-white text-sliitblue px-3 py-1 rounded-md text-sm flex items-center hover:bg-gray-100">
+                            <i class="fas fa-save mr-1"></i> Save
+                        </button>
+                        <button id="load-modules" class="bg-white text-sliitblue px-3 py-1 rounded-md text-sm flex items-center hover:bg-gray-100">
+                            <i class="fas fa-folder-open mr-1"></i> Load
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">Year:</span>
+                            <select id="year-select" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                                <option value="1">Year 1</option>
+                                <option value="2">Year 2</option>
+                                <option value="3">Year 3</option>
+                                <option value="4">Year 4</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-600">Semester:</span>
+                            <select id="semester-select" class="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                            </select>
+                        </div>
+                        <button id="add-subject" type="button" class="bg-sliitblue hover:bg-blue-800 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+                            <i class="fas fa-plus mr-2"></i> Add Module
+                        </button>
+                        <button id="calculate" class="bg-sliitorange hover:bg-orange-700 text-white px-6 py-2 rounded-md flex items-center transition-colors">
+                            <i class="fas fa-calculator mr-2"></i> Calculate GPA
+                        </button>
+                    </div>
+                </div>
+
+                <div id="subjects-container" class="p-4">
+                    <div class="text-center text-gray-500 py-8" id="empty-state">
+                        <i class="fas fa-book-open text-4xl mb-2"></i>
+                        <p>No modules added yet. Click "Add Module" to get started.</p>
+                    </div>
+                </div>
             </div>
 
-            <div id="subjects-container" class="p-6">
-                <!-- Modules will be added here dynamically -->
-            </div>
-
-            <div id="results" class="hidden p-6 bg-sliitlight border-t border-gray-200">
-                <h3 class="text-lg font-medium text-gray-800 mb-4">Results</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-md shadow-sm">
-                        <p class="text-gray-600">Total Credits</p>
+            <div id="results" class="hidden bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-4 bg-sliitblue text-white">
+                    <h3 class="text-lg font-semibold">Results</h3>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-sliitlight p-4 rounded-md">
+                        <p class="text-gray-600 text-sm">Total Credits</p>
                         <p id="total-credits" class="text-2xl font-semibold text-gray-800">0</p>
                     </div>
-                    <div class="bg-white p-4 rounded-md shadow-sm">
-                        <p class="text-gray-600">Total Grade Points</p>
-                        <p id="total-grade-points" class="text-2xl font-semibold text-gray-800">0</p>
+                    <div class="bg-sliitlight p-4 rounded-md">
+                        <p class="text-gray-600 text-sm">Total Grade Points</p>
+                        <p id="total-grade-points" class="text-2xl font-semibold text-gray-800">0.00</p>
                     </div>
-                    <div class="bg-white p-4 rounded-md shadow-sm border-2 border-sliitblue">
-                        <p class="text-gray-600">GPA</p>
-                        <p id="gpa" class="text-3xl font-bold text-sliitblue">0.0</p>
+                    <div class="bg-sliitlight p-4 rounded-md border-2 border-sliitblue">
+                        <p class="text-gray-600 text-sm">GPA</p>
+                        <p id="gpa" class="text-3xl font-bold text-sliitblue">0.00</p>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="bg-gray-800 text-white py-6 mt-auto">
+    <footer class="bg-gray-800 text-white py-4 mt-auto">
         <div class="container mx-auto px-4 text-center text-sm">
-            <p>&copy; 2023 SLIIT GPA Calculator. For official use only.</p>
+            <p>&copy; 2023 SLIIT GPA Calculator. Developed by Sahil.</p>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- Save Modal -->
+    <div id="save-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Save Modules</h3>
+                <button onclick="closeModal('save-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="save-name" class="block text-sm font-medium text-gray-700 mb-1">Save as:</label>
+                <input type="text" id="save-name" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sliitblue">
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="save-year" class="block text-sm font-medium text-gray-700 mb-1">Year:</label>
+                    <select id="save-year" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="save-semester" class="block text-sm font-medium text-gray-700 mb-1">Semester:</label>
+                    <select id="save-semester" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('save-modal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm">Cancel</button>
+                <button onclick="saveModules()" class="px-4 py-2 bg-sliitblue text-white rounded-md text-sm hover:bg-blue-800">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Modal -->
+    <div id="load-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Load Modules</h3>
+                <button onclick="closeModal('load-modal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-2 flex space-x-2">
+                <select id="filter-year" class="border border-gray-300 rounded-md px-2 py-1 text-sm flex-grow" onchange="filterSavedModules()">
+                    <option value="all">All Years</option>
+                    <option value="1">Year 1</option>
+                    <option value="2">Year 2</option>
+                    <option value="3">Year 3</option>
+                    <option value="4">Year 4</option>
+                </select>
+                <select id="filter-semester" class="border border-gray-300 rounded-md px-2 py-1 text-sm flex-grow" onchange="filterSavedModules()">
+                    <option value="all">All Semesters</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                </select>
+            </div>
+            <div class="mb-4 max-h-60 overflow-y-auto">
+                <ul id="saved-modules-list" class="divide-y divide-gray-200">
+                    <!-- Saved modules will appear here -->
+                </ul>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('load-modal')" class="px-4 py-2 border border-gray-300 rounded-md text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const subjectsContainer = document.getElementById('subjects-container');
+            const addSubjectBtn = document.getElementById('add-subject');
+            const calculateBtn = document.getElementById('calculate');
+            const resultsDiv = document.getElementById('results');
+            const saveBtn = document.getElementById('save-modules');
+            const loadBtn = document.getElementById('load-modules');
+            const yearSelect = document.getElementById('year-select');
+            const semesterSelect = document.getElementById('semester-select');
+            const emptyState = document.getElementById('empty-state');
+
+            // Initialize with empty state
+            updateEmptyState();
+
+            // Event listeners
+            addSubjectBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                addModule();
+            });
+            
+            calculateBtn.addEventListener('click', calculateGPA);
+            saveBtn.addEventListener('click', showSaveModal);
+            loadBtn.addEventListener('click', showLoadModal);
+            yearSelect.addEventListener('change', loadPresetModules);
+            semesterSelect.addEventListener('change', loadPresetModules);
+
+            // Add first module if empty
+            if (subjectsContainer.children.length === 1) {
+                addModule();
+            }
+
+            function addModule(name = '', credits = '', grade = '') {
+                emptyState.classList.add('hidden');
+
+                const moduleRow = document.createElement('div');
+                moduleRow.className = 'grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center bg-sliitlight p-3 rounded-md';
+                
+                moduleRow.innerHTML = `
+                    <div class="md:col-span-5">
+                        <input type="text" value="${name}" class="module-name w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Module Name" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <input type="number" value="${credits}" class="module-credits w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Credits" min="1" max="10" required>
+                    </div>
+                    <div class="md:col-span-3">
+                        <select class="module-grade w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" required>
+                            <option value="">Select Grade</option>
+                            <option value="4.0" ${grade === '4.0' ? 'selected' : ''}>A+</option>
+                            <option value="4.0" ${grade === '4.0' ? 'selected' : ''}>A</option>
+                            <option value="3.7" ${grade === '3.7' ? 'selected' : ''}>A-</option>
+                            <option value="3.3" ${grade === '3.3' ? 'selected' : ''}>B+</option>
+                            <option value="3.0" ${grade === '3.0' ? 'selected' : ''}>B</option>
+                            <option value="2.7" ${grade === '2.7' ? 'selected' : ''}>B-</option>
+                            <option value="2.3" ${grade === '2.3' ? 'selected' : ''}>C+</option>
+                            <option value="2.0" ${grade === '2.0' ? 'selected' : ''}>C</option>
+                            <option value="1.7" ${grade === '1.7' ? 'selected' : ''}>C-</option>
+                            <option value="1.3" ${grade === '1.3' ? 'selected' : ''}>D+</option>
+                            <option value="1.0" ${grade === '1.0' ? 'selected' : ''}>D</option>
+                            <option value="0.0" ${grade === '0.0' ? 'selected' : ''}>E</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end space-x-2">
+                        <button class="move-up-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move up">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="move-down-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move down">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="remove-btn text-red-600 hover:text-red-800 transition-colors" title="Remove module">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                
+                subjectsContainer.appendChild(moduleRow);
+                
+                // Add event listeners to new module
+                const removeBtn = moduleRow.querySelector('.remove-btn');
+                const moveUpBtn = moduleRow.querySelector('.move-up-btn');
+                const moveDownBtn = moduleRow.querySelector('.move-down-btn');
+                
+                removeBtn.addEventListener('click', function() {
+                    subjectsContainer.removeChild(moduleRow);
+                    updateEmptyState();
+                });
+                
+                moveUpBtn.addEventListener('click', function() {
+                    if (moduleRow.previousElementSibling && !moduleRow.previousElementSibling.id) {
+                        subjectsContainer.insertBefore(moduleRow, moduleRow.previousElementSibling);
+                    }
+                });
+                
+                moveDownBtn.addEventListener('click', function() {
+                    if (moduleRow.nextElementSibling) {
+                        subjectsContainer.insertBefore(moduleRow.nextElementSibling, moduleRow);
+                    }
+                });
+            }
+
+            function updateEmptyState() {
+                if (subjectsContainer.children.length === 1) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+            }
+
+            function calculateGPA() {
+                const moduleRows = subjectsContainer.querySelectorAll('.bg-sliitlight');
+                let totalCredits = 0;
+                let totalGradePoints = 0;
+                let allValid = true;
+                
+                moduleRows.forEach(row => {
+                    const nameInput = row.querySelector('.module-name');
+                    const creditsInput = row.querySelector('.module-credits');
+                    const gradeSelect = row.querySelector('.module-grade');
+                    
+                    if (!nameInput.value || !creditsInput.value || !gradeSelect.value) {
+                        allValid = false;
+                        if (!nameInput.value) nameInput.classList.add('border-red-500');
+                        if (!creditsInput.value) creditsInput.classList.add('border-red-500');
+                        if (!gradeSelect.value) gradeSelect.classList.add('border-red-500');
+                    } else {
+                        nameInput.classList.remove('border-red-500');
+                        creditsInput.classList.remove('border-red-500');
+                        gradeSelect.classList.remove('border-red-500');
+                    }
+                });
+                
+                if (!allValid) {
+                    showNotification('Please fill in all fields for all modules', 'warning');
+                    return;
+                }
+                
+                moduleRows.forEach(row => {
+                    const credits = parseFloat(row.querySelector('.module-credits').value);
+                    const gradePoints = parseFloat(row.querySelector('.module-grade').value);
+                    
+                    totalCredits += credits;
+                    totalGradePoints += credits * gradePoints;
+                });
+                
+                const gpa = totalGradePoints / totalCredits;
+                
+                document.getElementById('total-credits').textContent = totalCredits;
+                document.getElementById('total-grade-points').textContent = totalGradePoints.toFixed(2);
+                document.getElementById('gpa').textContent = gpa.toFixed(2);
+                
+                resultsDiv.classList.remove('hidden');
+                showNotification('GPA calculated successfully!', 'success');
+            }
+
+            function showSaveModal() {
+                document.getElementById('save-modal').classList.remove('hidden');
+                document.getElementById('save-year').value = document.getElementById('year-select').value;
+                document.getElementById('save-semester').value = document.getElementById('semester-select').value;
+            }
+
+            function showLoadModal() {
+                document.getElementById('load-modal').classList.remove('hidden');
+                filterSavedModules();
+            }
+
+            function loadPresetModules() {
+                const year = yearSelect.value;
+                const semester = semesterSelect.value;
+                if (year === 'custom') return;
+                
+                subjectsContainer.innerHTML = '';
+                subjectsContainer.appendChild(emptyState);
+                updateEmptyState();
+                
+                const presets = {
+                    '1_1': [
+                        { name: 'Programming Fundamentals', credits: '4', grade: '' },
+                        { name: 'Mathematics for Computing', credits: '3', grade: '' },
+                        { name: 'Computer Systems', credits: '3', grade: '' }
+                    ],
+                    '1_2': [
+                        { name: 'Object Oriented Programming', credits: '4', grade: '' },
+                        { name: 'Data Structures & Algorithms', credits: '3', grade: '' },
+                        { name: 'Database Systems', credits: '3', grade: '' }
+                    ],
+                    // Add more presets as needed
+                };
+                
+                const key = `${year}_${semester}`;
+                if (presets[key]) {
+                    presets[key].forEach(module => {
+                        addModule(module.name, module.credits, module.grade);
+                    });
+                    showNotification(`Loaded Year ${year} Semester ${semester} modules`, 'success');
+                }
+            }
+
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                const notificationMsg = document.getElementById('notification-message');
+                
+                notificationMsg.textContent = message;
+                notification.className = `fixed top-4 right-4 z-50`;
+                notification.classList.add('bg-' + (type === 'success' ? 'success' : 'warning'));
+                notification.classList.remove('hidden');
+                
+                setTimeout(hideNotification, 5000);
+            }
+        });
+
+        // Global functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function hideNotification() {
+            document.getElementById('notification').classList.add('hidden');
+        }
+
+        function saveModules() {
+            const saveName = document.getElementById('save-name').value.trim();
+            if (!saveName) {
+                showNotification('Please enter a name for your module set', 'warning');
+                return;
+            }
+            
+            const year = document.getElementById('save-year').value;
+            const semester = document.getElementById('save-semester').value;
+            const moduleRows = document.querySelectorAll('.bg-sliitlight');
+            const modules = [];
+            
+            moduleRows.forEach(row => {
+                modules.push({
+                    name: row.querySelector('.module-name').value,
+                    credits: row.querySelector('.module-credits').value,
+                    grade: row.querySelector('.module-grade').value
+                });
+            });
+            
+            const savedModules = JSON.parse(localStorage.getItem('savedModules')) || [];
+            savedModules.push({
+                name: saveName,
+                year: year,
+                semester: semester,
+                modules: modules,
+                timestamp: new Date().toISOString()
+            });
+            
+            localStorage.setItem('savedModules', JSON.stringify(savedModules));
+            closeModal('save-modal');
+            showNotification('Modules saved successfully!', 'success');
+        }
+
+        function filterSavedModules() {
+            const yearFilter = document.getElementById('filter-year').value;
+            const semesterFilter = document.getElementById('filter-semester').value;
+            const savedModulesList = document.getElementById('saved-modules-list');
+            savedModulesList.innerHTML = '';
+            
+            const savedModules = JSON.parse(localStorage.getItem('savedModules')) || [];
+            
+            if (savedModules.length === 0) {
+                savedModulesList.innerHTML = '<li class="py-2 text-center text-gray-500">No saved modules found</li>';
+                return;
+            }
+            
+            const filtered = savedModules.filter(module => {
+                return (yearFilter === 'all' || module.year === yearFilter) &&
+                       (semesterFilter === 'all' || module.semester === semesterFilter);
+            });
+            
+            if (filtered.length === 0) {
+                savedModulesList.innerHTML = '<li class="py-2 text-center text-gray-500">No modules match your filters</li>';
+                return;
+            }
+            
+            filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            filtered.forEach((module, index) => {
+                const originalIndex = savedModules.findIndex(m => m.timestamp === module.timestamp);
+                const li = document.createElement('li');
+                li.className = 'py-2 px-3 hover:bg-gray-50 cursor-pointer';
+                li.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-medium">${module.name}</div>
+                            <div class="text-xs text-gray-500">Year ${module.year} Semester ${module.semester}</div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="loadModule(${originalIndex})" class="text-sliitblue hover:underline text-sm">Load</button>
+                            <button onclick="deleteModule(${originalIndex})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                        </div>
+                    </div>
+                `;
+                savedModulesList.appendChild(li);
+            });
+        }
+
+        function loadModule(index) {
+            const savedModules = JSON.parse(localStorage.getItem('savedModules')) || [];
+            if (index >= savedModules.length) return;
+            
+            const moduleSet = savedModules[index];
+            const subjectsContainer = document.getElementById('subjects-container');
+            
+            subjectsContainer.innerHTML = '';
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            document.getElementById('year-select').value = moduleSet.year;
+            document.getElementById('semester-select').value = moduleSet.semester;
+            
+            moduleSet.modules.forEach(module => {
+                const moduleRow = document.createElement('div');
+                moduleRow.className = 'grid grid-cols-1 md:grid-cols-12 gap-3 mb-3 items-center bg-sliitlight p-3 rounded-md';
+                moduleRow.innerHTML = `
+                    <div class="md:col-span-5">
+                        <input type="text" value="${module.name}" class="module-name w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Module Name" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <input type="number" value="${module.credits}" class="module-credits w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" placeholder="Credits" min="1" max="10" required>
+                    </div>
+                    <div class="md:col-span-3">
+                        <select class="module-grade w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue" required>
+                            <option value="">Select Grade</option>
+                            <option value="4.0" ${module.grade === '4.0' ? 'selected' : ''}>A+</option>
+                            <option value="4.0" ${module.grade === '4.0' ? 'selected' : ''}>A</option>
+                            <option value="3.7" ${module.grade === '3.7' ? 'selected' : ''}>A-</option>
+                            <option value="3.3" ${module.grade === '3.3' ? 'selected' : ''}>B+</option>
+                            <option value="3.0" ${module.grade === '3.0' ? 'selected' : ''}>B</option>
+                            <option value="2.7" ${module.grade === '2.7' ? 'selected' : ''}>B-</option>
+                            <option value="2.3" ${module.grade === '2.3' ? 'selected' : ''}>C+</option>
+                            <option value="2.0" ${module.grade === '2.0' ? 'selected' : ''}>C</option>
+                            <option value="1.7" ${module.grade === '1.7' ? 'selected' : ''}>C-</option>
+                            <option value="1.3" ${module.grade === '1.3' ? 'selected' : ''}>D+</option>
+                            <option value="1.0" ${module.grade === '1.0' ? 'selected' : ''}>D</option>
+                            <option value="0.0" ${module.grade === '0.0' ? 'selected' : ''}>E</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end space-x-2">
+                        <button class="move-up-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move up">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="move-down-btn text-gray-600 hover:text-sliitblue transition-colors" title="Move down">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="remove-btn text-red-600 hover:text-red-800 transition-colors" title="Remove module">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                subjectsContainer.appendChild(moduleRow);
+            });
+            
+            closeModal('load-modal');
+            showNotification(`"${moduleSet.name}" loaded successfully`, 'success');
+        }
+
+        function deleteModule(index) {
+            const savedModules = JSON.parse(localStorage.getItem('savedModules')) || [];
+            if (index >= savedModules.length) return;
+            
+            const moduleName = savedModules[index].name;
+            savedModules.splice(index, 1);
+            localStorage.setItem('savedModules', JSON.stringify(savedModules));
+            
+            filterSavedModules();
+            showNotification(`"${moduleName}" deleted`, 'success');
+        }
+    </script>
 </body>
 </html>
