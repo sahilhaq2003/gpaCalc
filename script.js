@@ -13,27 +13,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function addModule() {
         const moduleRow = document.createElement('div');
-        moduleRow.className = 'subject-row';
+        moduleRow.className = 'grid grid-cols-1 md:grid-cols-12 gap-4 mb-4 items-center';
         
         moduleRow.innerHTML = `
-            <input type="text" class="subject-name" placeholder="Module Name" required>
-            <input type="number" class="credits" placeholder="Credits" min="1" max="10" required>
-            <select class="grade" required>
-                <option value="">Select Grade</option>
-                <option value="4.0">A+</option>
-                <option value="4.0">A</option>
-                <option value="3.7">A-</option>
-                <option value="3.3">B+</option>
-                <option value="3.0">B</option>
-                <option value="2.7">B-</option>
-                <option value="2.3">C+</option>
-                <option value="2.0">C</option>
-                <option value="1.7">C-</option>
-                <option value="1.3">D+</option>
-                <option value="1.0">D</option>
-                <option value="0.0">E</option>
-            </select>
-            <button class="remove-btn" title="Remove module"><i class="fas fa-times"></i></button>
+            <div class="md:col-span-5">
+                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" placeholder="Module Name" required>
+            </div>
+            <div class="md:col-span-3">
+                <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" placeholder="Credits" min="1" max="10" required>
+            </div>
+            <div class="md:col-span-3">
+                <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sliitblue focus:border-transparent" required>
+                    <option value="">Select Grade</option>
+                    <option value="4.0">A+</option>
+                    <option value="4.0">A</option>
+                    <option value="3.7">A-</option>
+                    <option value="3.3">B+</option>
+                    <option value="3.0">B</option>
+                    <option value="2.7">B-</option>
+                    <option value="2.3">C+</option>
+                    <option value="2.0">C</option>
+                    <option value="1.7">C-</option>
+                    <option value="1.3">D+</option>
+                    <option value="1.0">D</option>
+                    <option value="0.0">E</option>
+                </select>
+            </div>
+            <div class="md:col-span-1 flex justify-center">
+                <button class="remove-btn text-red-600 hover:text-red-800 transition-colors" title="Remove module">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
         `;
         
         subjectsContainer.appendChild(moduleRow);
@@ -50,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function calculateGPA() {
-        const moduleRows = subjectsContainer.querySelectorAll('.subject-row');
+        const moduleRows = subjectsContainer.querySelectorAll('.grid');
         let totalCredits = 0;
         let totalGradePoints = 0;
         
@@ -58,19 +68,19 @@ document.addEventListener('DOMContentLoaded', function() {
         let allValid = true;
         
         moduleRows.forEach(row => {
-            const nameInput = row.querySelector('.subject-name');
-            const creditsInput = row.querySelector('.credits');
-            const gradeSelect = row.querySelector('.grade');
+            const nameInput = row.querySelector('input[type="text"]');
+            const creditsInput = row.querySelector('input[type="number"]');
+            const gradeSelect = row.querySelector('select');
             
             if (!nameInput.value || !creditsInput.value || !gradeSelect.value) {
                 allValid = false;
-                if (!nameInput.value) nameInput.style.borderColor = 'red';
-                if (!creditsInput.value) creditsInput.style.borderColor = 'red';
-                if (!gradeSelect.value) gradeSelect.style.borderColor = 'red';
+                if (!nameInput.value) nameInput.classList.add('border-red-500');
+                if (!creditsInput.value) creditsInput.classList.add('border-red-500');
+                if (!gradeSelect.value) gradeSelect.classList.add('border-red-500');
             } else {
-                nameInput.style.borderColor = '';
-                creditsInput.style.borderColor = '';
-                gradeSelect.style.borderColor = '';
+                nameInput.classList.remove('border-red-500');
+                creditsInput.classList.remove('border-red-500');
+                gradeSelect.classList.remove('border-red-500');
             }
         });
         
@@ -81,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Calculate GPA
         moduleRows.forEach(row => {
-            const credits = parseFloat(row.querySelector('.credits').value);
-            const gradePoints = parseFloat(row.querySelector('.grade').value);
+            const credits = parseFloat(row.querySelector('input[type="number"]').value);
+            const gradePoints = parseFloat(row.querySelector('select').value);
             
             totalCredits += credits;
             totalGradePoints += credits * gradePoints;
